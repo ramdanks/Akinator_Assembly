@@ -13,11 +13,12 @@ LeftArrow = 'a'
 RightArrow = 'd'
 EnterKey = 13
 
-;==!(DATA SEGMENT)!==;
+;==========!(DATA SEGMENT)!===========;
 
        DATASEG
 
 Index       db   1
+Step        db   1
 CLOCK       EQU  ES:6CH
 
 ;=============== BMP INFO ===============;
@@ -38,16 +39,29 @@ BmpRowSize  dw ?
 
 ;=== PICTURE ===;
 
-MenuImg1     db "assets\sel1.bmp", 0
-MenuImg2     db "assets\sel2.bmp", 0
-MenuImg3     db "assets\sel3.bmp", 0
-MenuImg4     db "assets\sel4.bmp", 0
+MenuImg1     db "assets\menu\sel1.bmp", 0
+MenuImg2     db "assets\menu\sel2.bmp", 0
+MenuImg3     db "assets\menu\sel3.bmp", 0
+MenuImg4     db "assets\menu\sel4.bmp", 0
 
-ChooseImg1   db "assets\choose1.bmp", 0
-ChooseImg2   db "assets\choose2.bmp", 0
-ChooseImg3   db "assets\choose3.bmp", 0	
+ChooseImg1   db "assets\game\choose1.bmp", 0
+ChooseImg2   db "assets\game\choose2.bmp", 0
+ChooseImg3   db "assets\game\choose3.bmp", 0
 
-;==!(CODE SEGMENT)!==;
+DoneImg1     db "assets\step\1step.bmp", 0
+DoneImg2     db "assets\step\2step.bmp", 0
+DoneImg3     db "assets\step\3step.bmp", 0
+DoneImg4     db "assets\step\4step.bmp", 0
+DoneImg5     db "assets\step\5step.bmp", 0
+DoneImg6     db "assets\step\6step.bmp", 0
+DoneImg7     db "assets\step\7step.bmp", 0
+DoneImg8     db "assets\step\8step.bmp", 0
+DoneImg9     db "assets\step\9step.bmp", 0
+DoneImg10    db "assets\step\10step.bmp", 0
+
+BlankImg     db "assets\blank.bmp", 0	
+
+;==========!(CODE SEGMENT)!===========;
 
        CODESEG
 
@@ -62,13 +76,17 @@ CALL SetResolution
 ;==== MENU POINT ====;
         
         MENU:
-
+        
 CALL MenuImgProc
 CALL Input
 CALL MenuSelProc
 
 CMP  AL, 10
 JE   GAME
+CMP  AL, 20
+JE   HOW
+CMP  AL, 30
+JE   CREDITS
 
 JMP  MENU
 
@@ -78,15 +96,61 @@ JMP  MENU
 
 CALL GameImgProc
 CALL Input
-Call GameSelProc
+CALL GameSelProc
 
 CMP  AL, 69
 JE   MENU
+CMP  AL, 20
+JE   DONE
+CMP  AL, 10
+JE   ApplyGameLogic
+CMP  AL, 30
+JE   ApplyGameLogic
 
 JMP  GAME
 
+ApplyGameLogic:
+CALL GameLogic
+JMP  GAME
 
-;==!(MACRO SEGMENT)!==;
+        DONE:
+
+CALL DoneImgProc
+CALL Input
+CMP  AL, 'm'
+JNE  DONE
+
+MOV [STEP], 1
+CALL Sound
+JMP  MENU  
+
+;==== HOWTO POINT ====;
+
+         HOW:
+         
+LEA  DX, [BlankImg]
+CALL OpenShowBmp         
+CALL INPUT
+CMP  AL, 'm'
+JNE  HOW
+
+CALL SOUND
+JMP  MENU
+
+;=== CREDITS POINT ===;
+        
+       CREDITS:
+
+LEA  DX, [BlankImg]
+CALL OpenShowBmp       
+CALL INPUT        
+CMP  AL, 'm'
+JNE  CREDITS
+
+CALL Sound
+JMP  MENU
+
+;==========!(MACRO SEGMENT)!===========;
 
 ;==== SOUND ====;
 
@@ -112,6 +176,66 @@ PROC Sound
 RET    
 ENDP Sound
 
+;==== Image when Game Done ====;
+
+PROC DoneImgProc
+    
+    STEP1:
+    CMP [Step], 1
+    JNE STEP2
+    LEA DX, [DoneImg1]
+    STEP2:
+    CMP [Step], 2
+    JNE STEP3
+    LEA DX, [DoneImg2]
+    STEP3:
+    CMP [Step], 3
+    JNE STEP4
+    LEA DX, [DoneImg3]
+    STEP4:
+    CMP [Step], 4
+    JNE STEP5
+    LEA DX, [DoneImg4]
+    STEP5:
+    CMP [Step], 5
+    JNE STEP6
+    LEA DX, [DoneImg5]
+    STEP6:
+    CMP [Step], 6
+    JNE STEP7
+    LEA DX, [DoneImg6]
+    STEP7:
+    CMP [Step], 7
+    JNE STEP8
+    LEA DX, [DoneImg7]
+    STEP8:
+    CMP [Step], 8
+    JNE STEP9
+    LEA DX, [DoneImg8]
+    STEP9:
+    CMP [Step], 9
+    JNE STEP10
+    LEA DX, [DoneImg9]
+    STEP10:
+    CMP [Step], 10
+    JB  KembaliDoneImgProc
+    LEA DX, [DoneImg10]
+        
+KembaliDoneImgProc:
+CALL OpenShowBmp    
+RET
+ENDP DoneImgProc
+
+;===== Game Mode Logic =====;
+
+PROC GameLogic
+
+
+KembaliGameLogic:
+INC [Step]    
+RET    
+ENDP GameLogic
+
 ;==== Image in Game Mode ====;
 
 PROC GameImgProc
@@ -131,7 +255,6 @@ PROC GameImgProc
 
 KembaliGameImgProc:
 CALL OpenShowBmp
-CALL Sound
 RET        
 ENDP GameImgProc
 
@@ -139,22 +262,41 @@ ENDP GameImgProc
 
 PROC GameSelProc
 
-PressMenu:
-
+Game_PressEnter:    
+    CMP AL, 13
+    JNE Game_PressMenu
+    Call Sound
+    
+    TOO_LOW:
+    CMP [Index], 1
+    JNE IS_CORRECT
+    MOV AL, 10
+    
+    IS_CORRECT:
+    CMP [Index], 2
+    JNE TOO_HIGH
+    MOV AL, 20 
+    
+    TOO_HIGH:
+    CMP [Index], 3
+    JNE KembaliGameSelProc
+    MOV AL, 30
+    
+    JMP KembaliGameSelProc
+    
+Game_PressMenu:
     CMP AL, 'm'
-    JNE PressLeft
+    JNE Game_PressLeft
     MOV AL, 69
 
-PressLeft:
-
+Game_PressLeft:
     CMP AL, LeftArrow
-    JNE PressRight
+    JNE Game_PressRight
     CMP [Index], 1
     JBE KembaliGameSelProc
     DEC [Index]
     
-PressRight:
-    
+Game_PressRight:
     CMP AL, RightArrow
     JNE Kembali
     CMP [Index], 3
@@ -188,8 +330,7 @@ PROC MenuImgProc
     LEA DX, [MenuImg4]
      
 KembaliMenuImgProc:
-CALL OpenShowBmp
-CALL Sound     
+CALL OpenShowBmp     
 RET
 ENDP MenuImgProc
 
@@ -198,9 +339,9 @@ ENDP MenuImgProc
 PROC MenuSelProc
 
 PressEnter:
-
     CMP AL, EnterKey
     JNE PressUp
+    Call Sound
     
     SelectPlay:
     CMP [Index], 1
@@ -223,15 +364,13 @@ PressEnter:
     CALL ExitProg
 
 PressUp:
-
     CMP AL, UpArrow
     JNE PressDown
     CMP [Index], 1
     JBE Kembali
     DEC [Index]
     
-PressDown:
-    
+PressDown:    
     CMP AL, DownArrow
     JNE Kembali
     CMP [Index], 4
