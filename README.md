@@ -14,8 +14,8 @@ We make this Game as easy as possible for user to Interract. This program takes 
 # Credits
 This contains some of the people and art that contributes to this program. Without them this project will not be completed. 
 ## Developer
-### Irfan Fakrianto
-- NPM : 
+### Muhammad Irfan Fakrianto
+- NPM : 1806200356
 - Almamater : Universitas Indonesia
 ### Mohammad Salman Alfarisi
 - NPM : 1806200381
