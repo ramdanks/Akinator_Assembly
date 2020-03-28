@@ -4,6 +4,8 @@
 We make this Game as easy as possible for user to Interract. This program takes 'wasd' key as an input. We make this program interactive by playing a sound when user press an input, and also make the selection change it's color, so user will know which menu is being selected.
 ## Main Menu
 ![](assets/sel1.bmp)
+## Game Mode
+![](assets/choose1.bmp)
 
 # What's This Game About ?
 
