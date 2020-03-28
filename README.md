@@ -1,5 +1,8 @@
 # Akinator in Assembly Language
 
+# User Interface
+![](assets/sel1.bmp)
+
 # Credits
 This contains some of the people and art that contributes to this program. Without them this project will not be completed. 
 ## Developer
