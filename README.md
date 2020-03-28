@@ -1,7 +1,10 @@
 # Akinator in Assembly Language
 
 # User Interface
+We make this Game as easy as possible to user to Interract. We use 'wasd' as an input. And we make this program interactive by playing a sound when user press an input, and also make the selection change it's color see user will know which one is selected.
 ![](assets/sel1.bmp)
+
+# What's This Game About ?
 
 # Credits
 This contains some of the people and art that contributes to this program. Without them this project will not be completed. 
