@@ -1,11 +1,17 @@
 # Akinator_Assembly
 
-# Developer
-## Irfan Fakrianto
+# Credits
+This contains some of the people and art that contributes to this program. Without them this project will not be completed. 
+## Developer
+### Irfan Fakrianto
 NPM : 
-## Mohammad Salman Alfarisi
-NPM :
-## Ramadhan Kalih Sewu
+Almamater : Universitas Indonesia
+### Mohammad Salman Alfarisi
+NPM : 1806200381
+Almamater : Universitas Indonesia
+### Ramadhan Kalih Sewu
 NPM : 1806148826
-## Qisas Tazkia Hasanudin
+Almamater : Universitas Indonesia
+### Qisas Tazkia Hasanudin
 NPM : 1806200210
+Almamater : Universitas Indonesia
