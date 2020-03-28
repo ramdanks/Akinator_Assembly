@@ -9,13 +9,15 @@ SMALL_BMP_WIDTH = 40
 
 UpArrow = 'w'
 DownArrow = 's'
+LeftArrow = 'a'
+RightArrow = 'd'
 EnterKey = 13
 
 ;==!(DATA SEGMENT)!==;
 
        DATASEG
 
-MenuIndex   db   1
+Index       db   1
 CLOCK       EQU  ES:6CH
 
 ;=============== BMP INFO ===============;
@@ -39,13 +41,17 @@ BmpRowSize  dw ?
 MenuImg1     db "assets\sel1.bmp", 0
 MenuImg2     db "assets\sel2.bmp", 0
 MenuImg3     db "assets\sel3.bmp", 0
-MenuImg4     db "assets\sel4.bmp", 0	
+MenuImg4     db "assets\sel4.bmp", 0
+
+ChooseImg1   db "assets\choose1.bmp", 0
+ChooseImg2   db "assets\choose2.bmp", 0
+ChooseImg3   db "assets\choose3.bmp", 0	
 
 ;==!(CODE SEGMENT)!==;
 
        CODESEG
 
-;==!(ENTRY - POINT)!==;
+;==== ENTRY POINT ====;
 
         START:
 
@@ -53,15 +59,36 @@ MOV  AX,     @data
 MOV  DS,     AX
 CALL SetResolution
 
+;==== MENU POINT ====;
+        
         MENU:
 
 CALL MenuImgProc
 CALL Input
 CALL MenuSelProc
+
+CMP  AL, 10
+JE   GAME
+
 JMP  MENU
+
+;==== GAME POINT ====;
+
+        GAME:
+
+CALL GameImgProc
+CALL Input
+Call GameSelProc
+
+CMP  AL, 69
+JE   MENU
+
+JMP  GAME
 
 
 ;==!(MACRO SEGMENT)!==;
+
+;==== SOUND ====;
 
 PROC Sound
 
@@ -85,31 +112,88 @@ PROC Sound
 RET    
 ENDP Sound
 
+;==== Image in Game Mode ====;
+
+PROC GameImgProc
+
+    LEFT_CHOOSE:
+    LEA DX, [ChooseImg1]
+    
+    MID_CHOOSE:
+    CMP [Index], 2
+    JNE RIGHT_CHOOSE
+    LEA DX, [ChooseImg2]
+    
+    RIGHT_CHOOSE:
+    CMP [Index], 3
+    JNE KembaliGameImgProc
+    LEA DX, [ChooseImg3]
+
+KembaliGameImgProc:
+CALL OpenShowBmp
+CALL Sound
+RET        
+ENDP GameImgProc
+
+;==== Select in Game Mode ====;
+
+PROC GameSelProc
+
+PressMenu:
+
+    CMP AL, 'm'
+    JNE PressLeft
+    MOV AL, 69
+
+PressLeft:
+
+    CMP AL, LeftArrow
+    JNE PressRight
+    CMP [Index], 1
+    JBE KembaliGameSelProc
+    DEC [Index]
+    
+PressRight:
+    
+    CMP AL, RightArrow
+    JNE Kembali
+    CMP [Index], 3
+    JAE KembaliGameSelProc
+    INC [Index]
+    
+KembaliGameSelProc:
+RET     
+ENDP GameSelProc
+
+;==== Image in Menu Mode ====;
+
 PROC MenuImgProc
      
     INDEX1:
     LEA DX, [MenuImg1]
     
     INDEX2:
-    CMP [MenuIndex], 2
+    CMP [Index], 2
     JNE INDEX3
     LEA DX, [MenuImg2]
     
     INDEX3:
-    CMP [MenuIndex], 3
+    CMP [Index], 3
     JNE INDEX4
     LEA DX, [MenuImg3]
     
     INDEX4:
-    CMP [MenuIndex], 4
-    JNE KembaliImgProc
+    CMP [Index], 4
+    JNE KembaliMenuImgProc
     LEA DX, [MenuImg4]
      
-KembaliImgProc:
+KembaliMenuImgProc:
 CALL OpenShowBmp
 CALL Sound     
 RET
 ENDP MenuImgProc
+
+;==== Select in Menu Mode ====;
 
 PROC MenuSelProc
 
@@ -117,7 +201,24 @@ PressEnter:
 
     CMP AL, EnterKey
     JNE PressUp
-    CMP [MenuIndex], 4
+    
+    SelectPlay:
+    CMP [Index], 1
+    JNE SelectHow
+    MOV AL, 10
+    
+    SelectHow:
+    CMP [Index], 2
+    JNE SelectCredits
+    MOV AL, 20    
+    
+    SelectCredits:
+    CMP [Index], 3
+    JNE SelectExit
+    MOV AL, 30    
+    
+    SelectExit:
+    CMP [Index], 4
     JNE PressUp
     CALL ExitProg
 
@@ -125,21 +226,23 @@ PressUp:
 
     CMP AL, UpArrow
     JNE PressDown
-    CMP [MenuIndex], 1
+    CMP [Index], 1
     JBE Kembali
-    DEC [MenuIndex]
+    DEC [Index]
     
 PressDown:
     
     CMP AL, DownArrow
     JNE Kembali
-    CMP [MenuIndex], 4
+    CMP [Index], 4
     JAE Kembali
-    INC [MenuIndex]
+    INC [Index]
     
 Kembali:
 RET     
 ENDP MenuSelProc
+
+;==== Handle BMP Image Format ====;
 
 PROC OpenShowBmp NEAR
 	push cx
@@ -283,6 +386,8 @@ PROC Input
 RET
 ENDP Input
 
+;==== DELAY (DX) ====;
+
 PROC DELAY
 
 push ax                   
@@ -306,6 +411,8 @@ push ax
 
 ENDP DELAY
 
+;==== Exit Program ====;
+
 PROC ExitProg
     
     MOV AX, 2
@@ -315,6 +422,6 @@ PROC ExitProg
 
 ENDP ExitProg
 
-;====================;
+;======================;
      
 END
