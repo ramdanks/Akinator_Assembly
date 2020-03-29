@@ -18,48 +18,56 @@ EnterKey = 13
        DATASEG
 
 Index       db   1
-Step        db   1
 CLOCK       EQU  ES:6CH
+
+Step        db   1
+ANSWER      dw   500
+UPBOUND     dw   1000
+LOWBOUND    dw   0
+
+VARNAME     db  16 dup(0)
+MSG         db  "Masukkan Nama Anda : ", 0
 
 ;=============== BMP INFO ===============;
 
 OneBmpLine 	    db MAX_BMP_WIDTH dup (0)
 ScreenLineMax 	db MAX_BMP_WIDTH dup (0)
 
-ErrorFile   db 0
-FileHandle  dw ?
-Header      db 54       dup(0)
-Palette     db 400H     dup(0)
+ErrorFile   db  0
+FileHandle  dw  ?
+Header      db  54 dup(0)
+Palette     db  400H dup(0)
 
-
-BmpLeft     dw ?
-BmpTop      dw ?
-BmpColSize  dw ?
-BmpRowSize  dw ?
+BmpLeft     dw  ?
+BmpTop      dw  ?
+BmpColSize  dw  ?
+BmpRowSize  dw  ?
 
 ;=== PICTURE ===;
 
-MenuImg1     db "assets\menu\sel1.bmp", 0
-MenuImg2     db "assets\menu\sel2.bmp", 0
-MenuImg3     db "assets\menu\sel3.bmp", 0
-MenuImg4     db "assets\menu\sel4.bmp", 0
+NumberImg   db "assets\num\501.bmp", 0
 
-ChooseImg1   db "assets\game\choose1.bmp", 0
-ChooseImg2   db "assets\game\choose2.bmp", 0
-ChooseImg3   db "assets\game\choose3.bmp", 0
+MenuImg1    db "assets\menu\sel1.bmp", 0
+MenuImg2    db "assets\menu\sel2.bmp", 0
+MenuImg3    db "assets\menu\sel3.bmp", 0
+MenuImg4    db "assets\menu\sel4.bmp", 0
 
-DoneImg1     db "assets\step\1step.bmp", 0
-DoneImg2     db "assets\step\2step.bmp", 0
-DoneImg3     db "assets\step\3step.bmp", 0
-DoneImg4     db "assets\step\4step.bmp", 0
-DoneImg5     db "assets\step\5step.bmp", 0
-DoneImg6     db "assets\step\6step.bmp", 0
-DoneImg7     db "assets\step\7step.bmp", 0
-DoneImg8     db "assets\step\8step.bmp", 0
-DoneImg9     db "assets\step\9step.bmp", 0
-DoneImg10    db "assets\step\10step.bmp", 0
+ChooseImg1  db "assets\game\choose1.bmp", 0
+ChooseImg2  db "assets\game\choose2.bmp", 0
+ChooseImg3  db "assets\game\choose3.bmp", 0
 
-BlankImg     db "assets\blank.bmp", 0	
+DoneImg1    db "assets\step\1step.bmp", 0
+DoneImg2    db "assets\step\2step.bmp", 0
+DoneImg3    db "assets\step\3step.bmp", 0
+DoneImg4    db "assets\step\4step.bmp", 0
+DoneImg5    db "assets\step\5step.bmp", 0
+DoneImg6    db "assets\step\6step.bmp", 0
+DoneImg7    db "assets\step\7step.bmp", 0
+DoneImg8    db "assets\step\8step.bmp", 0
+DoneImg9    db "assets\step\9step.bmp", 0
+DoneImg10   db "assets\step\10step.bmp", 0
+
+BlankImg    db "assets\blank.bmp", 0	
 
 ;==========!(CODE SEGMENT)!===========;
 
@@ -94,34 +102,38 @@ JMP  MENU
 
         GAME:
 
-CALL GameImgProc
-CALL Input
-CALL GameSelProc
+CALL InitNewGame        
 
-CMP  AL, 69
-JE   MENU
-CMP  AL, 20
-JE   DONE
-CMP  AL, 10
-JE   ApplyGameLogic
-CMP  AL, 30
-JE   ApplyGameLogic
-
-JMP  GAME
-
-ApplyGameLogic:
-CALL GameLogic
-JMP  GAME
+UpdateAnswer:
+    CALL NumberImgProc
+    CALL NumberSelProc
+    
+    Selection:
+    CALL GameImgProc
+    CALL GameSelProc
+    CMP  AL, 10
+    JE   UpdateAnswer
+    CMP  AL, 'm'
+    JE   MENU
+    CMP  AL, 20
+    JE   DONE
+    JMP  Selection
 
         DONE:
 
 CALL DoneImgProc
 CALL Input
+CMP  AL, 't'
+JE   NEXT
 CMP  AL, 'm'
 JNE  DONE
 
 MOV [STEP], 1
 CALL Sound
+JMP  MENU
+
+NEXT:
+CALL TESTIMONY
 JMP  MENU  
 
 ;==== HOWTO POINT ====;
@@ -176,6 +188,103 @@ PROC Sound
 RET    
 ENDP Sound
 
+;==== Game Logic Here ====;
+
+PROC GameLogic
+    
+    CMP  [STEP], 10
+    JAE  RETURN
+    
+    CHECKDOWN:    
+    CMP  AL, 10
+    JNE  CHECKUP
+    INC  [STEP]
+    MOV  [LOWBOUND], DX
+    MOV  DX, [UPBOUND]
+    SUB  DX, [LOWBOUND]
+    MOV  AX, DX
+    MOV  BX, 2
+    CWD
+    DIV  BX
+    CMP  DX, 0
+    JE   Lanjutan
+    INC  AX
+    Lanjutan:
+    MOV  DX, AX
+    ADD  DX, [LOWBOUND]
+    JMP  RETURN
+    
+    CHECKUP:
+    CMP  AL, 30
+    JNE  RETURN
+    INC  [STEP] 
+    MOV  [UPBOUND], DX
+    SUB  DX, [LOWBOUND]
+    SHR  DX, 1
+    ADD  DX, [LOWBOUND]  
+    
+RETURN:
+MOV  [ANSWER], DX
+MOV  AL, 10
+RET
+ENDP
+
+PROC InitNewGame
+
+    MOV [STEP], 1
+    MOV [UPBOUND], 1000
+    MOV [LOWBOUND], 0
+    MOV [ANSWER], 500
+    
+RET
+ENDP
+
+;==== Number in Game Done ====;
+
+PROC NumberImgProc
+   
+   LEA  DX, [NumberImg]
+   CALL OpenShowBmp
+    
+RET    
+ENDP NumberImgProc
+
+PROC NumberSelProc
+    
+    AskAgain:
+    CALL Input
+    CMP  AL, 'r'
+    JNE  AskAgain    
+
+RET    
+ENDP NumberSelProc
+
+;=== Testimony when Game Done ===;
+
+PROC Testimony
+
+    LEA DX, [MSG]
+    MOV AH, 09H
+    INT 21H
+    
+    LEA BP, [VARNAME]
+    MOV DI, 0
+    GetInput:
+    MOV AH, 01H
+    INT 21H
+    MOV [BP+DI], AL
+    INC DI
+    CMP DI, 16
+    JAE KembaliTestimony
+    CMP AL, 13
+    JE  KembaliTestimony
+    JMP GetInput
+
+KembaliTestimony:
+RET
+ENDP Testimony    
+
+
 ;==== Image when Game Done ====;
 
 PROC DoneImgProc
@@ -226,16 +335,6 @@ CALL OpenShowBmp
 RET
 ENDP DoneImgProc
 
-;===== Game Mode Logic =====;
-
-PROC GameLogic
-
-
-KembaliGameLogic:
-INC [Step]    
-RET    
-ENDP GameLogic
-
 ;==== Image in Game Mode ====;
 
 PROC GameImgProc
@@ -260,34 +359,37 @@ ENDP GameImgProc
 
 ;==== Select in Game Mode ====;
 
+;AL = 10, User Press (Too Low) or (Too High) Button, Return by GameLogic
+;AL = 20, User Press (Mid Button)
+                              
 PROC GameSelProc
-
+    
+    CALL Input
+    
 Game_PressEnter:    
-    CMP AL, 13
-    JNE Game_PressMenu
-    Call Sound
+    CMP  AL, 13
+    JNE  Game_PressLeft
+    CALL Sound
+    MOV  AL, 10
     
     TOO_LOW:
-    CMP [Index], 1
-    JNE IS_CORRECT
-    MOV AL, 10
+    CMP  [Index], 1
+    JNE  IS_CORRECT
+    MOV  AL, 10
+    CALL GameLogic
     
     IS_CORRECT:
-    CMP [Index], 2
-    JNE TOO_HIGH
-    MOV AL, 20 
+    CMP  [Index], 2
+    JNE  TOO_HIGH
+    MOV  AL, 20
     
     TOO_HIGH:
-    CMP [Index], 3
-    JNE KembaliGameSelProc
-    MOV AL, 30
+    CMP  [Index], 3
+    JNE  KembaliGameSelProc
+    MOV  AL, 30
+    CALL GameLogic
     
     JMP KembaliGameSelProc
-    
-Game_PressMenu:
-    CMP AL, 'm'
-    JNE Game_PressLeft
-    MOV AL, 69
 
 Game_PressLeft:
     CMP AL, LeftArrow
