@@ -6,6 +6,8 @@ We make this Game as easy as possible for user to Interract. This program takes 
 ![](assets/menu/sel1.bmp)
 ## Game Mode
 ![](assets/game/choose1.bmp)
+## Akinator will Guess
+![](assets/num/245.bmp)
 ## Program Success
 ![](assets/step/5step.bmp)
 
