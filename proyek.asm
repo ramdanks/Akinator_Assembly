@@ -45,7 +45,11 @@ BmpRowSize  dw  ?
 
 ;=== PICTURE ===;
 
+ANS_DECI    db "501.bmp", 0
 NumberImg   db "assets\num\501.bmp", 0
+NumberOV1	db "assets\num\1000.bmp", 0
+NumberOV2	db "assets\num\1001.bmp", 0
+
 
 MenuImg1    db "assets\menu\sel1.bmp", 0
 MenuImg2    db "assets\menu\sel2.bmp", 0
@@ -105,7 +109,7 @@ JMP  MENU
 CALL InitNewGame        
 
 UpdateAnswer:
-    CALL NumberImgProc
+    CALL ChangeNumberImgProc
     CALL NumberSelProc
     
     Selection:
@@ -141,10 +145,12 @@ JMP  MENU
          HOW:
          
 LEA  DX, [BlankImg]
-CALL OpenShowBmp         
+CALL OpenShowBmp
+
+AskHowInput:       
 CALL INPUT
 CMP  AL, 'm'
-JNE  HOW
+JNE  AskHowInput
 
 CALL SOUND
 JMP  MENU
@@ -154,10 +160,12 @@ JMP  MENU
        CREDITS:
 
 LEA  DX, [BlankImg]
-CALL OpenShowBmp       
+CALL OpenShowBmp
+
+AskCreditsInput:       
 CALL INPUT        
 CMP  AL, 'm'
-JNE  CREDITS
+JNE  AskCreditsInput
 
 CALL Sound
 JMP  MENU
@@ -191,10 +199,11 @@ ENDP Sound
 ;==== Game Logic Here ====;
 
 PROC GameLogic
-    
+  
     CMP  [STEP], 10
     JAE  RETURN
     
+    MOV  DX, [ANSWER]
     CHECKDOWN:    
     CMP  AL, 10
     JNE  CHECKUP
@@ -230,7 +239,8 @@ RET
 ENDP
 
 PROC InitNewGame
-
+    
+    MOV AL, 0
     MOV [STEP], 1
     MOV [UPBOUND], 1000
     MOV [LOWBOUND], 0
@@ -241,13 +251,61 @@ ENDP
 
 ;==== Number in Game Done ====;
 
-PROC NumberImgProc
+PROC ChangeNumberImgProc
+		
+	MOV  AX, [ANSWER]
+	
+	checkOV1:
+	CMP  AX, 999
+	JNE  checkOV2
+	LEA  DX, [NumberOV1]
+	JMP  ReturnImmideately
+	
+	checkOV2:
+	CMP  AX, 1000
+	JNE  NotOverload
+	LEA  DX, [NumberOV2]
+	JMP  ReturnImmideately
+	
+    NotOverload:
+    MOV  DI, offset ANS_DECI
+	INC  AX
+	MOV  BX, 0Ah
+	
+	DIV  BL
+	ADD  AH, 30h
+	MOV	 [DI+2], AH
+	SUB  AH, 30h 
+	MOV  AH, 0h
+	DIV  BL
+	ADD  AH, 30h
+	MOV	 [DI+1], AH 
+	SUB  AH, 30h
+	MOV  AH, 0h
+	DIV  BL 
+	ADD  AH, 30h
+	MOV	 [DI], AH
+    SUB  AH, 30h
+    
+    MOV  SI, offset ANS_DECI
+	MOV  DI, offset NumberImg
+	ADD  DI, 0Bh
+	MOV  AH, 00h
+	
+	MOV CX, 7
+	append:
+		LODSB
+		MOV  [DI], AX
+		INC  DI
+		loop append
+	MOV  AX,00h
    
    LEA  DX, [NumberImg]
+   ReturnImmideately:
    CALL OpenShowBmp
-    
+ 
 RET    
-ENDP NumberImgProc
+ENDP ChangeNumberImgProc
 
 PROC NumberSelProc
     
