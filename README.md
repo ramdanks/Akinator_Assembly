@@ -4,7 +4,9 @@
 We make this Game as easy as possible for user to Interract. This program takes 'wasd' key as an input. We make this program interactive by playing a sound when user press an input, and also make the selection change it's color, so user will know which menu is being selected.
 ## Main Menu
 ![](assets/menu/sel1.bmp)
-## Game Mode
+## Akinator will Guess
+![](assets/num/245.bmp)
+## You will Response
 ![](assets/game/choose1.bmp)
 ## Program Success
 ![](assets/step/5step.bmp)
