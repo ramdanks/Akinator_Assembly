@@ -50,6 +50,15 @@ NumberImg   db "assets\num\501.bmp", 0
 NumberOV1	db "assets\num\1000.bmp", 0
 NumberOV2	db "assets\num\1001.bmp", 0
 
+CreditsImg1 db "assets\credits\credits1.bmp", 0
+CreditsImg2 db "assets\credits\credits2.bmp", 0
+
+HowToImg1   db "assets\how_to\how_to1.bmp", 0
+HowToImg2   db "assets\how_to\how_to2.bmp", 0
+HowToImg3   db "assets\how_to\how_to3.bmp", 0
+HowToImg4   db "assets\how_to\how_to4.bmp", 0
+HowToImg5   db "assets\how_to\how_to5.bmp", 0
+HowToImg6   db "assets\how_to\how_to6.bmp", 0
 
 MenuImg1    db "assets\menu\sel1.bmp", 0
 MenuImg2    db "assets\menu\sel2.bmp", 0
@@ -98,9 +107,9 @@ JE   GAME
 CMP  AL, 20
 JE   HOW
 CMP  AL, 30
-JE   CREDITS
 
-JMP  MENU
+JNE  MENU ; Kalo dia langsung jump ke credits kejauhan
+JMP  CREDITS
 
 ;==== GAME POINT ====;
 
@@ -143,14 +152,55 @@ JMP  MENU
 ;==== HOWTO POINT ====;
 
          HOW:
-         
-LEA  DX, [BlankImg]
-CALL OpenShowBmp
+call SOUND
 
-AskHowInput:       
-CALL INPUT
-CMP  AL, 'm'
-JNE  AskHowInput
+How_To1:       
+    lea  DX, [HowToImg1]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To1    
+    call SOUND
+	
+How_To2:
+    lea  DX, [HowToImg2]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To2
+	call SOUND 
+
+How_To3:         
+    lea  DX, [HowToImg3]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To3     
+    call SOUND
+	
+How_To4: 
+	lea  DX, [HowToImg4]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To4
+    call SOUND
+    
+How_To5:   
+    lea  DX, [HowToImg5]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To5     
+    call SOUND      
+	
+How_To6:
+    call SOUND
+    lea  DX, [HowToImg6]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To6     
 
 CALL SOUND
 JMP  MENU
@@ -158,18 +208,26 @@ JMP  MENU
 ;=== CREDITS POINT ===;
         
        CREDITS:
+call SOUND 
 
-LEA  DX, [BlankImg]
-CALL OpenShowBmp
-
-AskCreditsInput:       
-CALL INPUT        
-CMP  AL, 'm'
-JNE  AskCreditsInput
-
+Credits1:        
+    lea  DX, [CreditsImg1]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  Credits1     
+    call SOUND 
+	
+Credits2:
+    call SOUND 
+    lea  DX, [CreditsImg2]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  Credits2
+	
 CALL Sound
 JMP  MENU
-
 ;==========!(MACRO SEGMENT)!===========;
 
 ;==== SOUND ====;
