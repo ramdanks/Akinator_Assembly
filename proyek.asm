@@ -1,3 +1,54 @@
+; @2020
+; Team		:	- Mohammad Salman Alfarisi		< Teknik Komputer - 1806200381>
+;				- Muhammad Irfan Fakhrianto		< Teknik Komputer - 1806200356>
+;				- Ramadhan Kalih Sewu			< Teknik Komputer - 1806148826>
+;				- Qisas Tazkia Hasanuddin		< Teknik Komputer - 1806200210>
+; Group 	:	9B 	
+; Project  	:	Number Akinator
+;
+;--------------------------------------------------------------------------------------------------------------
+;
+; Schenario	: 	1. User memikirkan angka dari 1 - 1000
+;				2. Program akan mencoba menebak angka yang dipikirkan user
+;				3. User memberi response terhadap tebakan program 
+;					(lebih kecil, pas, lebih besar)
+;				4. Program akan memberi tebakan baru sesuai respons user
+;				5. Program akan menebak angka user dalam maksimal 10 giliran!
+;
+;--------------------------------------------------------------------------------------------------------------
+;
+;				Number Akinator is a program that guesses any number 1-1000 the user is thinking of.
+;				more on https://github.com/ramdanks/Akinator_Assembly
+;
+;					Copyright <C> 2020 M. Salman A., M. Irfan F., Ramadhan K.S., Qisas Tazkia H.
+;	
+;					Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
+;					and associated documentation files (the "Software"), to deal in the Software without restriction, 
+;					including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+;					and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+;					subject to the following conditions:
+;
+;					The above copyright notice and this permission notice shall be included in all copies or 
+;					substantial portions of the Software.
+;
+;					THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+;					INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE 
+;					AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+;					DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF 
+;					OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+;--------------------------------------------------------------------------------------------------------------
+;
+; References:	1. Kiersz, Andy. "How To Guess Any Number Under 1,000 In Ten Steps Or Less". 
+;					Thejournal.Ie, 2020, https://www.thejournal.ie/guess-number-binary-search-1181370-Nov2013/. 
+;					Accessed 8 Apr 2020.
+;				2. Background Image:
+;					https://www.freepik.com/premium-vector/background-matrix-style_4136981.htm
+; 				3. Bitmap (.bmp) file accessing source code:
+;					https://www.youtube.com/watch?v=bBsHL42wALM&t=17s
+;
+;--------------------------------------------------------------------------------------------------------------
+
 IDEAL
 MODEL small
 STACK 0F500H
@@ -50,6 +101,15 @@ NumberImg   db "assets\num\501.bmp", 0
 NumberOV1	db "assets\num\1000.bmp", 0
 NumberOV2	db "assets\num\1001.bmp", 0
 
+CreditsImg1 db "assets\credits\credits1.bmp", 0
+CreditsImg2 db "assets\credits\credits2.bmp", 0
+
+HowToImg1   db "assets\how_to\how_to1.bmp", 0
+HowToImg2   db "assets\how_to\how_to2.bmp", 0
+HowToImg3   db "assets\how_to\how_to3.bmp", 0
+HowToImg4   db "assets\how_to\how_to4.bmp", 0
+HowToImg5   db "assets\how_to\how_to5.bmp", 0
+HowToImg6   db "assets\how_to\how_to6.bmp", 0
 
 MenuImg1    db "assets\menu\sel1.bmp", 0
 MenuImg2    db "assets\menu\sel2.bmp", 0
@@ -59,6 +119,9 @@ MenuImg4    db "assets\menu\sel4.bmp", 0
 ChooseImg1  db "assets\game\choose1.bmp", 0
 ChooseImg2  db "assets\game\choose2.bmp", 0
 ChooseImg3  db "assets\game\choose3.bmp", 0
+
+ChooseImgYes  db "assets\game\yes.bmp", 0
+ChooseImgNo  db "assets\game\no.bmp", 0
 
 DoneImg1    db "assets\step\1step.bmp", 0
 DoneImg2    db "assets\step\2step.bmp", 0
@@ -70,6 +133,8 @@ DoneImg7    db "assets\step\7step.bmp", 0
 DoneImg8    db "assets\step\8step.bmp", 0
 DoneImg9    db "assets\step\9step.bmp", 0
 DoneImg10   db "assets\step\10step.bmp", 0
+
+WrongImg   db "assets\step\wrong.bmp", 0
 
 BlankImg    db "assets\blank.bmp", 0	
 
@@ -98,9 +163,9 @@ JE   GAME
 CMP  AL, 20
 JE   HOW
 CMP  AL, 30
-JE   CREDITS
 
-JMP  MENU
+JNE  MENU ; Kalo dia langsung JE ke credits kejauhan
+JMP  CREDITS
 
 ;==== GAME POINT ====;
 
@@ -109,12 +174,29 @@ JMP  MENU
 CALL InitNewGame        
 
 UpdateAnswer:
+
     CALL ChangeNumberImgProc
     CALL NumberSelProc
     
     Selection:
+	
+    CMP  [STEP], 10
+    JAE   LastTurn
+	
     CALL GameImgProc
     CALL GameSelProc
+	JMP  notLastTurn
+	
+	LastTurn:
+	Call LastTurnImageProc
+	Call LastTurnSelProc
+	CMP  AL, 20
+	JE   DONE
+	CMP  AL, 30
+	JE	 DONE_WRONG
+	JMP  LastTurn
+	
+	notLastTurn:
     CMP  AL, 10
     JE   UpdateAnswer
     CMP  AL, 'm'
@@ -131,6 +213,18 @@ CMP  AL, 't'
 JE   NEXT
 CMP  AL, 'm'
 JNE  DONE
+		
+MOV [STEP], 1
+CALL Sound
+JMP  MENU
+
+		DONE_WRONG:
+
+CALL SOUND
+CALL WrongImgProc
+CALL Input
+CMP  AL, 'm'
+JNE  DONE_WRONG
 
 MOV [STEP], 1
 CALL Sound
@@ -143,14 +237,56 @@ JMP  MENU
 ;==== HOWTO POINT ====;
 
          HOW:
-         
-LEA  DX, [BlankImg]
-CALL OpenShowBmp
+		 
+call SOUND
 
-AskHowInput:       
-CALL INPUT
-CMP  AL, 'm'
-JNE  AskHowInput
+How_To1:       
+    lea  DX, [HowToImg1]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To1    
+    call SOUND
+	
+How_To2:
+    lea  DX, [HowToImg2]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To2
+	call SOUND 
+
+How_To3:         
+    lea  DX, [HowToImg3]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To3     
+    call SOUND
+	
+How_To4: 
+	lea  DX, [HowToImg4]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To4
+    call SOUND
+    
+How_To5:   
+    lea  DX, [HowToImg5]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To5     
+    call SOUND      
+	
+How_To6:
+    call SOUND
+    lea  DX, [HowToImg6]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  How_To6     
 
 CALL SOUND
 JMP  MENU
@@ -158,15 +294,25 @@ JMP  MENU
 ;=== CREDITS POINT ===;
         
        CREDITS:
+	   
+call SOUND 
 
-LEA  DX, [BlankImg]
-CALL OpenShowBmp
-
-AskCreditsInput:       
-CALL INPUT        
-CMP  AL, 'm'
-JNE  AskCreditsInput
-
+Credits1:        
+    lea  DX, [CreditsImg1]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  Credits1     
+    call SOUND 
+	
+Credits2:
+    call SOUND 
+    lea  DX, [CreditsImg2]
+    call OpenShowBmp         
+    call INPUT
+    cmp  AL, EnterKey
+    jne  Credits2
+	
 CALL Sound
 JMP  MENU
 
@@ -199,10 +345,7 @@ ENDP Sound
 ;==== Game Logic Here ====;
 
 PROC GameLogic
-  
-    CMP  [STEP], 10
-    JAE  RETURN
-    
+	
     MOV  DX, [ANSWER]
     CHECKDOWN:    
     CMP  AL, 10
@@ -393,6 +536,12 @@ CALL OpenShowBmp
 RET
 ENDP DoneImgProc
 
+PROC WrongImgProc
+LEA  DX, [WrongImg]
+CALL OpenShowBmp  
+RET
+ENDP WrongImgProc
+
 ;==== Image in Game Mode ====;
 
 PROC GameImgProc
@@ -414,6 +563,28 @@ KembaliGameImgProc:
 CALL OpenShowBmp
 RET        
 ENDP GameImgProc
+
+PROC LastTurnImageProc
+
+	; Start at index 1
+	CMP [INDEX], 3
+	JB  LT_MID_CHOOSE
+	MOV [INDEX], 1
+
+	LT_MID_CHOOSE:
+    CMP [Index], 1
+    JNE LT_RIGHT_CHOOSE
+    LEA DX, [ChooseImgYes]
+    
+    LT_RIGHT_CHOOSE:
+    CMP [Index], 2
+    JNE KembaliLastTurnImgProc
+    LEA DX, [ChooseImgNo]
+
+KembaliLastTurnImgProc:
+CALL OpenShowBmp
+RET
+ENDP LastTurnImageProc
 
 ;==== Select in Game Mode ====;
 
@@ -458,7 +629,7 @@ Game_PressLeft:
     
 Game_PressRight:
     CMP AL, RightArrow
-    JNE Kembali
+    JNE KembaliGameSelProc
     CMP [Index], 3
     JAE KembaliGameSelProc
     INC [Index]
@@ -466,6 +637,46 @@ Game_PressRight:
 KembaliGameSelProc:
 RET     
 ENDP GameSelProc
+
+PROC LastTurnSelProc
+
+	CALL Input
+	
+LT_PressEnter:    
+    CMP  AL, 13
+    JNE  LT_PressLeft
+    CALL Sound
+	MOV  AL, 10
+    
+    YES:
+    CMP  [Index], 1
+    JNE  NO
+    MOV  AL, 20
+	
+    NO:
+    CMP  [Index], 2
+	JNE  KembaliLastTurnSelProc
+    MOV  AL, 30
+	
+    JMP KembaliLastTurnSelProc
+
+LT_PressLeft:
+    CMP AL, LeftArrow
+    JNE LT_PressRight
+    CMP [Index], 1
+    JBE KembaliLastTurnSelProc
+    DEC [Index]
+    
+LT_PressRight:
+    CMP AL, RightArrow
+    JNE KembaliLastTurnSelProc
+    CMP [Index], 2
+    JAE KembaliLastTurnSelProc
+    INC [Index]
+
+KembaliLastTurnSelProc:
+RET
+ENDP LastTurnSelProc
 
 ;==== Image in Menu Mode ====;
 
