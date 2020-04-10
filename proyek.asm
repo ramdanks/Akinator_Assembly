@@ -49,6 +49,18 @@
 ;
 ;--------------------------------------------------------------------------------------------------------------
 
+;==========!(PLEASE README)!===========;
+
+; This Program Rely Heavily on use of Assets
+; if you're try to run this without downloading the assets
+; The program will not display anything
+; Please download the necessary assets needed for this program
+; You can go to the repository on github stated in the header
+; Place the assets folder in the same directory as the program
+; This program is licensed under GNU 3.0 General Public License
+
+;==========!(PROG DECLARATION)!===========;
+
 IDEAL
 MODEL small
 STACK 0F500H
